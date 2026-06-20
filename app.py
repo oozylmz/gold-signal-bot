@@ -4,7 +4,8 @@ import requests
 import plotly.express as px
 from datetime import datetime
 
-st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
+# Sayfa Yapılandırması
+st.set_page_config(page_title="GOLD VADELİ TAKİP", layout="wide", page_icon="💰")
 
 # --- MODERN NEON UI CSS ---
 st.markdown("""
@@ -36,6 +37,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# Sunucu Linkleri
 API_URL = "https://gold-signal-bot-1.onrender.com"
 S_URL = f"{API_URL}/get_signals"
 U_URL = f"{API_URL}/update_trade"
@@ -49,7 +51,6 @@ with st.sidebar:
     st.write("✅ Veritabanı: Bağlı")
     st.markdown("---")
     
-    # TEST BUTONU BURADA (Her zaman erişilebilir)
     st.subheader("🚀 Hızlı Test")
     if st.button("Sinyal Gönder (Test)"):
         test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
@@ -59,7 +60,7 @@ with st.sidebar:
             if res.status_code == 200:
                 st.success("Sinyal gönderildi! ✅")
             else:
-                st.error("Hata oluştu!")
+                st.error("Sunucu hata verdi!")
         except Exception as e:
             st.error(f"Hata: {e}")
 
@@ -111,7 +112,6 @@ with tab1:
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
-            # Tablodaki sütunları görseldeki gibi düzenle
             display_df = df[['time', 'pattern', 'signal', 'entry', 'sl', 'tp2', 'status']].copy()
             st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
 
@@ -128,7 +128,7 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<br>", unsafe_//allow_html=True) # Not: Buradaki // ları siliyorum
+            st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
@@ -143,50 +143,4 @@ with tab1:
 with tab2:
     try:
         b_res = requests.get(B_URL).json()
-        balance = b_res['balance']
-        total_p = b_res['total_profit']
-    except:
-        balance, total_p = 0.0, 0.0
-
-    df_all = fetch_data()
-    daily_pnl = 0
-    if not df_all.empty:
-        today = datetime.now().strftime("%Y-%m-%d")
-        today_trades = df_all[df_all['time'].str.contains(today)]
-        for _, row in today_trades.iterrows():
-            if row['status'] == 'WIN': daily_pnl += (row['tp1'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['tp1'])
-            if row['status'] == 'LOSS': daily_pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
-
-    if daily_pnl <= -3000:
-        st.error(f"🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})")
-    elif daily_//pnl >= 1000:
-        st.success(f"✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR) - DURUN!")
-    else:
-        st.info(f"Günlük Durum: ${daily_pnl:.2f}")
-
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("BAŞLANGIÇ KASASI", "$10,000")
-    k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
-    k3.metric("TOPLAM K/Z", f"${total_p:,.2f}")
-    k4.metric("GÜNLÜK K/Z", f"${daily_pnl:,.2f}")
-
-    st.markdown("---")
-    
-    col_setup, col_chart = st.columns([1, 1])
-    with col_setup:
-        st.subheader("⚙️ Kasa Ayarları")
-        with st.form("bal_form"):
-            new_bal = st.number_input("Kasa Bakiyesi ($)", value=balance)
-            if st.form_submit_button("Kaydet"):
-                requests.post(UB_URL, json={"balance": new_bal})
-                st.rerun()
-
-    with col_chart:
-        st.subheader("📈 K/Z Grafiği")
-        if not df.empty:
-            df['cum_pnl'] = df['PnL'].cumsum()
-            fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
-            fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig_line, use_container_width=True)
-        else:
-            st.write("Grafik için veri bekleniyor...")
+        balance = b_res['](streamdown:incomplete-link)
