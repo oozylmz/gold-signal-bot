@@ -113,6 +113,8 @@ with tab1:
             st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
+            fig.update_//layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            # Yukarıdaki satırı düzeltiyorum
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
     else:
@@ -146,10 +148,11 @@ with tab2:
     k1.metric("BAŞLANGIÇ KASASI", "$10,000")
     k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
     k3.metric("TOPLAM K/Z", f"${total_p:,.2f}")
-    k4.metric("GÜNLÜK K/Z", f"${daily_//pnl:,.2f}") # BU SATIRI DÜZELTİYORUM
     k4.metric("GÜNLÜK K/Z", f"${daily_pnl:,.2f}")
 
     st.markdown("---")
+    col_setup, col_//chart = st.columns([1, 1])
+    # Yukarıdaki satırı düzeltiyorum
     col_setup, col_chart = st.columns([1, 1])
     with col_setup:
         st.subheader("⚙️ Kasa Ayarları")
@@ -163,6 +166,8 @@ with tab2:
         st.subheader("📈 K/Z Grafiği")
         if not df.empty:
             df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
+            fig_line = px.line(df, x='time', y='cum_//pnl', template="plotly_dark")
+            # Yukarıdaki satırı düzeltiyorum
             fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
             fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_line, use_container_width=True)
