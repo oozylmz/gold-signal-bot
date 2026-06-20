@@ -6,14 +6,17 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# --- AYARLAR (Ortam Değişkenlerinden Alınır) ---
-# Sunucuya yüklediğimizde bu değerleri Render/Railway panelinden ekleyeceğiz
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+# --- AYARLAR ---
+TELEGRAM_TOKEN = os.getenv("8967758978:AAFfx1F7LJ9Fr2eerAn0Y0vnaUAIhOS8YjQ")
+CHAT_ID = os.getenv("-1004490031358")
+
+# --- ANA SAYFA TESTİ (YENİ EKLEDİK) ---
+@app.route('/')
+def home():
+    return "Sistem Çalışıyor! Bot Aktif. ✅", 200
 
 # --- VERİ TABANI FONKSİYONLARI ---
 def init_db():
-    """Veri tabanını ve tabloyu oluşturur."""
     conn = sqlite3.connect('signals.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS signals 
@@ -25,7 +28,6 @@ def init_db():
     conn.close()
 
 def save_to_db(data):
-    """Sinyal verilerini veri tabanına kaydeder."""
     try:
         conn = sqlite3.connect('signals.db')
         c = conn.cursor()
@@ -39,12 +41,8 @@ def save_to_db(data):
     except Exception as e:
         print(f"Veri tabanı hatası: {e}")
 
-# --- TELEGRAM MESAJ GÖNDERİCİ ---
 def send_telegram_msg(data):
-    """Sinyali güzel bir formatla Telegram'a gönderir."""
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    
-    # Mesaj formatı (Zengin Metin - Markdown)
     msg = (f"🎯 *MGC1! HARMONİK SİNYAL*\n\n"
            f"📦 Formasyon: `{data.get('pattern')}`\n"
            f"🚀 Yön: *{data.get('signal')}*\n"
@@ -54,25 +52,22 @@ def send_telegram_msg(data):
            f"🛑 Stop: `{data.get('sl')}`\n"
            f"📊 RSI: `{data.get('rsi')}`\n\n"
            f"⏰ Saat: {datetime.now().strftime('%H:%M')}")
-    
     payload = {"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"}
     requests.post(url, json=payload)
 
-# --- WEBHOOK ENDPOINT (TradingView buraya veri gönderir) ---
+# --- WEBHOOK ENDPOINT ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        data = request.json # TradingView'den gelen JSON paketini yakala
+        data = request.json
         if data:
-            print(f"Sinyal Alındı: {data}")
-            save_to_db(data)       # 1. Veri tabanına kaydet
-            send_telegram_msg(data) # 2. Telegram'a gönder
+            save_to_db(data)
+            send_telegram_msg(data)
             return jsonify({"status": "success"}), 200
         else:
             return jsonify({"status": "no data"}), 400
     return jsonify({"status": "wrong method"}), 405
 
-# --- ANA ÇALIŞTIRICI ---
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000)
