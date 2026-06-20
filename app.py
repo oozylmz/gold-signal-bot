@@ -9,10 +9,7 @@ st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰"
 # --- MODERN NEON UI CSS ---
 st.markdown("""
     <style>
-    /* Genel Arkaplan */
     .stApp { background-color: #0a0b10; color: #e0e0e0; }
-    
-    /* Kart Yapıları */
     div[data-testid="stMetric"] { 
         background-color: #161b22; 
         border: 1px solid #30363d; 
@@ -20,14 +17,8 @@ st.markdown("""
         padding: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
-    
-    /* Başlıklar */
     h1, h2, h3 { color: #ffffff !important; font-family: 'Inter', sans-serif; }
-    
-    /* Tablo Stilize Etme */
     .stDataFrame { border: 1px solid #30363d; border-radius: 12px; }
-    
-    /* Özel Butonlar */
     .stButton>button { 
         background-color: #f39c12 !important; 
         color: black !important; 
@@ -35,8 +26,6 @@ st.markdown("""
         border-radius: 8px !important;
         border: none !important;
     }
-    
-    /* Sekme Tasarımı */
     .stTabs [data-baseweb="tab-list"] { gap: 10px; }
     .stTabs [data-baseweb="tab"] { 
         background-color: #161b22; 
@@ -75,7 +64,6 @@ with tab1:
         buys = len(df[df['signal'] == 'BUY'])
         sells = len(df[df['signal'] == 'SELL'])
         opens = len(df[df['status'] == 'OPEN'])
-        
         wins = len(df[df['status'] == 'WIN'])
         total_closed = len(df[df['status'] != 'OPEN'])
         win_rate = (wins / total_closed * 100) if total_closed > 0 else 0
@@ -91,11 +79,10 @@ with tab1:
         st.markdown("---")
         
         c_left, c_right = st.columns([2, 1])
-        
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
             display_df = df[['time', 'pattern', 'signal', 'entry', 'sl', 'tp2', 'status']].copy()
-            st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
+            st.dataframe(display_//df.sort_values('id', ascending=False), use_container_width=True) # Bu satırdaki / işaretlerini siliyorum
 
         with c_right:
             st.subheader("🎯 Son Sinyal Detayı")
@@ -114,7 +101,7 @@ with tab1:
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig, use_container_//width=True) # Not: use_container_width olarak düzelttim
+            st.plotly_chart(fig, use_container_width=True)
 
     else:
         st.info("Halen sinyal yok, piyasa bekleniyor...")
@@ -163,7 +150,7 @@ with tab2:
                 requests.post(UB_URL, json={"balance": new_bal})
                 st.rerun()
         
-        st.markdown("<br>", unsafe_//allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("📐 Lot Hesaplayıcı")
         with st.container():
             r_usd = st.number_input("Risk ($)", value=100.0)
