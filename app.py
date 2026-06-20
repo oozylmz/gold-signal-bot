@@ -48,7 +48,6 @@ with st.sidebar:
         test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
         try:
             res = requests.post(f"{API_URL}/webhook", json=test_//data)
-            #Yukarıdaki // işaretini siliyorum
             res = requests.post(f"{API_URL}/webhook", json=test_data)
             if res.status_code == 200: st.success("Sinyal gönderildi! ✅")
             else: st.error("Sunucu hata verdi!")
