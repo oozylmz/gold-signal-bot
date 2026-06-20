@@ -47,6 +47,8 @@ with st.sidebar:
     if st.button("Sinyal Gönder (Test)"):
         test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
         try:
+            res = requests.post(f"{API_URL}/webhook", json=test_//data)
+            #Yukarıdaki // işaretini siliyorum
             res = requests.post(f"{API_URL}/webhook", json=test_data)
             if res.status_code == 200: st.success("Sinyal gönderildi! ✅")
             else: st.error("Sunucu hata verdi!")
@@ -164,8 +166,6 @@ with tab2:
             df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
             fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
             fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig_//line, use_container_width=True)
-            # Yukarıdaki satırdaki // silindi
             st.plotly_chart(fig_line, use_container_width=True)
         else:
             st.write("Grafik için veri bekleniyor...")
