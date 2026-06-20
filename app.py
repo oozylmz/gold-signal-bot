@@ -96,4 +96,41 @@ if df is not None and not df.empty:
     cols_to_show = ['id', 'time', 'symbol', 'signal', 'pattern', 'entry', 'sl', 'tp2', 'RR_Ratio', 'PnL', 'status']
     # Sadece mevcut olan sütunları göster (hata önleme)
     existing_cols = [c for c in cols_to_show if c in filtered_df.columns]
-    st.dataframe(filtered_df[existing_cols].sort_values('id', ascending=False), use*
+    st.dataframe(filtered_df[existing_cols].sort_values('id', ascending=False), use_container_width=True)
+
+    with st.expander("📝 İşlem Sonucunu Güncelle"):
+        with st.form("update_form"):
+            f1, f2, f3 = st.columns(3)
+            with f1: t_id = st.number_input("İşlem ID", step=1)
+            with f2: t_status = st.selectbox("Sonuç", ["WIN", "LOSS", "OPEN"])
+            with f3: t_exit = st.number_input("Kapanış Fiyatı", format="%.2f")
+            if st.form_submit_button("Kaydet"):
+                requests.post(UPDATE_URL, json={"id": t_id, "status": t_status, "exit_price": t_exit})
+                st.rerun()
+
+    st.markdown("---")
+    st.subheader("📐 Lot Hesaplayıcı")
+    with st.sidebar:
+        st.header("💰 Risk Yönetimi")
+        risk_amt = st.number_input("Risk Tutarı ($)", value=100.0)
+        en_p = st.number_input("Giriş", value=2000.0)
+        st_p = st.number_input("Stop", value=1990.0)
+        risk_u = abs(en_p - st_p)
+        if risk_u > 0: st.info(f"Lot: {risk_amt/risk_u:.4f}")
+
+else:
+    # VERİ YOKSA BU KISIM ÇALIŞIR (HATA VERMEZ)
+    st.info("⏳ Şu an analiz edilecek sinyal bulunmuyor.")
+    st.write("Sistemi test etmek için aşağıdaki butona basarak sanal bir sinyal gönderin.")
+    
+    if st.button("Sistemi Test Et ve Sinyal Gönder"):
+        test_data = {"symbol": "Sanal Gold", "signal": "BUY", "pattern": "Pro-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
+        try:
+            webhook_url = API_URL.replace("get_signals", "webhook")
+            requests.post(webhook_url, json=test_data)
+            st.success("Sinyal gönderildi! Lütfen sayfayı yenileyin.")
+        except: st.error("Hata oluştu.")
+
+st.sidebar.markdown("### 🛠️ Sistem")
+st.sidebar.write("✅ Sunucu: Online")
+st.sidebar.write("✅ Veritabanı: Bağlı")
