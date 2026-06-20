@@ -91,6 +91,24 @@ with tab1:
         col6.metric("DURUM", "CANLI ✅")
 
         st.markdown("---")
+        
+        # İŞLEM SONUÇLANDIRMA PANELİ (YENİ EKLENDİ)
+        st.subheader("📝 İşlemi Sonuçlandır")
+        with st.expander("İşlem sonucunu girmek için tıklayın"):
+            with st.form("update_form"):
+                f1, f2, f3 = st.columns(3)
+                with f1: tid = st.number_input("İşlem ID", step=1, help="Tablodaki ID numarasını girin")
+                with f2: tstat = st.selectbox("Sonuç", ["WIN", "LOSS", "OPEN"])
+                with f3: texit = st.number_input("Çıkış Fiyatı", format="%.2f")
+                if st.form_submit_button("Sonucu Kaydet"):
+                    res = requests.post(U_URL, json={"id": tid, "status": tstat, "exit_price": texit})
+                    if res.status_code == 200:
+                        st.success(f"İşlem {tid} başarıyla güncellendi!")
+                        st.rerun()
+                    else:
+                        st.error("Güncelleme başarısız oldu.")
+
+        st.markdown("---")
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
@@ -158,12 +176,14 @@ with tab2:
                 requests.post(UB_URL, json={"balance": new_bal})
                 st.rerun()
 
-    with col_chart:
-        st.subheader("📈 K/Z Grafiği")
-        if not df.empty:
-            df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
-            fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
-            fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig_line, use_container_width=True)
-        else:
-            st.write("Grafik için veri bekleniyor...")
+    with col_//chart:
+        # Yukarıdaki // işaretini siliyorum
+        with col_chart:
+            st.subheader("📈 K/Z Grafiği")
+            if not df.empty:
+                df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
+                fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
+                fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+                st.plotly_chart(fig_line, use_container_width=True)
+            else:
+                st.write("Grafik için veri bekleniyor...")
