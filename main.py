@@ -77,6 +77,28 @@ def send_telegram_msg(data):
            f"🛑 Stop: `{data.get('sl')}`\n📊 RSI: `{data.get('rsi')}`")
     payload = {"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"}
     requests.post(url, json=payload)
+# --- DASHBOARD VERİ API'Sİ ---
+@app.route('/get_signals', methods=['GET'])
+def get_signals():
+    try:
+        conn = sqlite3.connect('signals.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM signals ORDER BY id DESC")
+        rows = c.fetchall()
+        conn.close()
+        
+        # Verileri JSON formatına çeviriyoruz
+        signals = []
+        for row in rows:
+            signals.append({
+                "id": row[0], "symbol": row[1], "signal": row[2], 
+                "pattern": row[3], "entry": row[4], "tp1": row[5], 
+                "tp2": row[6], "sl": row[7], "rsi": row[8], 
+                "time": row[9], "status": row[10]
+            })
+        return jsonify(signals), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     init_db()
