@@ -10,11 +10,23 @@ app = Flask(__name__)
 TELEGRAM_TOKEN = os.getenv("8967758978:AAFfx1F7LJ9Fr2eerAn0Y0vnaUAIhOS8YjQ")
 CHAT_ID = os.getenv("-1004490031358")
 
+# --- RÖNTGEN SAYFASI (Hata tespiti için) ---
 @app.route('/')
 def home():
-    return "Sistem Çalışıyor! Bot Aktif. ✅", 200
+    # Sunucudaki tüm açık kapıları (rotaları) listeler
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append(str(rule))
+    
+    return f"""
+    <h1>Sistem Durumu: AKTİF ✅</h1>
+    <p>Sunucunuz şu an çalışıyor. Aşağıdaki kapılar (rotalar) tanımlı:</p>
+    <pre>{chr(10).join(routes)}</pre>
+    <hr>
+    <p><b>Test için şuna tıklayın:</b> <a href="/webhook">Webhook Kapısını Test Et</a></p>
+    """
 
-# --- WEBHOOK ENDPOINT (GET ve POST ekledik) ---
+# --- WEBHOOK ENDPOINT ---
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
@@ -31,7 +43,7 @@ def webhook():
             return jsonify({"status": "no data"}), 400
     return jsonify({"status": "wrong method"}), 405
 
-# --- VERİ TABANI VE TELEGRAM FONKSİYONLARI (Sadece isimleri kalmalı, içerik aynı) ---
+# --- DİĞER FONKSİYONLAR (Aynen kalıyor) ---
 def init_db():
     conn = sqlite3.connect('signals.db')
     c = conn.cursor()
@@ -55,6 +67,9 @@ def save_to_db(data):
     except Exception as e: print(f"DB Hatası: {e}")
 
 def send_telegram_msg(data):
+    if not TELEGRAM_TOKEN or not CHAT_ID:
+        print("HATA: Token veya Chat ID eksik!")
+        return
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     msg = (f"🎯 *MGC1! SİNYAL*\n\n📦 Formasyon: `{data.get('pattern')}`\n"
            f"🚀 Yön: *{data.get('signal')}*\n💰 Giriş: `{data.get('entry')}`\n"
