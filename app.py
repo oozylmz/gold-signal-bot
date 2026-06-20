@@ -4,10 +4,8 @@ import requests
 import plotly.express as px
 from datetime import datetime
 
-# Sayfa Yapılandırması
-st.set_page_config(page_title="GOLD VADELİ TAKİP", layout="wide", page_icon="💰")
+st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
 
-# --- MODERN NEON UI CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #0a0b10; color: #e0e0e0; }
@@ -16,71 +14,57 @@ st.markdown("""
         border: 1px solid #30363d; 
         border-radius: 12px; 
         padding: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
-    h1, h2, h3 { color: #ffffff !important; font-family: 'Inter', sans-serif; }
+    h1, h2, h3 { color: #ffffff !important; }
     .stDataFrame { border: 1px solid #30363d; border-radius: 12px; }
     .stButton>button { 
         background-color: #f39c12 !important; 
         color: black !important; 
         font-weight: bold !important;
         border-radius: 8px !important;
-        border: none !important;
     }
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
     .stTabs [data-baseweb="tab"] { 
         background-color: #161b22; 
-        border-radius: 8px 8px 0 0; 
         color: white !important; 
     }
     .stTabs [aria-selected="true"] { background-color: #f39c12 !important; color: black !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# Sunucu Linkleri
 API_URL = "https://gold-signal-bot-1.onrender.com"
+S_URL = f"{API_URL}/get_//signals".replace("//", "") # Temizlik için
 S_URL = f"{API_URL}/get_signals"
 U_URL = f"{API_URL}/update_trade"
 B_URL = f"{API_URL}/get_balance"
 UB_URL = f"{API_URL}/update_balance"
 
-# --- YAN MENÜ (SIDEBAR) ---
 with st.sidebar:
     st.header("🛠️ Sistem Kontrol")
     st.write("✅ Sunucu: Online")
-    st.write("✅ Veritabanı: Bağlı")
     st.markdown("---")
-    
-    st.subheader("🚀 Hızlı Test")
     if st.button("Sinyal Gönder (Test)"):
         test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
         try:
-            webhook_url = f"{API_URL}/webhook"
-            res = requests.post(webhook_url, json=test_data)
+            res = requests.post(f"{API_URL}/webhook", json=test_data)
             if res.status_code == 200:
                 st.success("Sinyal gönderildi! ✅")
             else:
-                st.error("Sunucu hata verdi!")
+                st.error("Hata oluştu!")
         except Exception as e:
             st.error(f"Hata: {e}")
-
     st.markdown("---")
     st.subheader("📐 Lot Hesaplayıcı")
     r_usd = st.number_input("Risk ($)", value=100.0)
     en_p = st.number_input("Giriş", value=2000.0)
     st_p = st.number_input("Stop", value=1990.0)
     res_lot = r_usd / abs(en_p - st_p) if abs(en_p - st_p) != 0 else 0
-    st.info(f"Önerilen Lot: **{res_lot:.4f}**")
+    st.info(f"Önerilen Lot: {res_lot:.4f}")
 
-# --- ANA SAYFA ---
 st.title("🟡 GOLD — MGC1 HARMONIC")
 st.markdown("✨ **Sinyal Takip ve Kasa Yönetim Sistemi**")
 
 tab1, tab2 = st.tabs(["📡 SİNYALLER", "💰 KASA TAKİP"])
 
-# ---------------------------------------------------------------------------
-# SEKME 1: SİNYALLER
-# ---------------------------------------------------------------------------
 with tab1:
     def fetch_data():
         try:
@@ -108,7 +92,6 @@ with tab1:
         col6.metric("DURUM", "CANLI ✅")
 
         st.markdown("---")
-        
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
@@ -121,26 +104,76 @@ with tab1:
             st.markdown(f"""
             <div style="background-color:#161b22; padding:20px; border-radius:15px; border:1px solid #f39c12">
                 <h3 style="color:#f39c12; margin-bottom:10px;">{last['pattern']}</h3>
-                <p><b>Yön:</b> {'<span style="color:green">BUY</span>' if last['signal']=='BUY' else '<span style="color:red">SELL</span>'}</p>
+                <p><b>Yön:</b> {'BUY' if last['signal']=='BUY' else 'SELL'}</p>
                 <p><b>Giriş:</b> {last['entry']}</p>
                 <p><b>Stop:</b> {last['sl']}</p>
                 <p><b>TP2:</b> {last['tp2']}</p>
             </div>
             """, unsafe_allow_html=True)
-            
             st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
-
     else:
-        st.info("Halen sinyal yok, piyasa bekleniyor... Sol menüden test sinyali gönderebilirsiniz.")
+        st.info("Sinyal bekleniyor...")
 
-# ---------------------------------------------------------------------------
-# SEKME 2: KASA TAKİP
-# ---------------------------------------------------------------------------
 with tab2:
     try:
         b_res = requests.get(B_URL).json()
-        balance = b_res['](streamdown:incomplete-link)
+        balance = b_res['balance']
+        total_p = b_res['total_profit']
+    except:
+        balance, total_p = 0.0, 0.0
+
+    df_all = fetch_data()
+    daily_pnl = 0
+    if not df_all.empty:
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_trades = df_all[df_all['time'].str.contains(today)]
+        for _, row in today_//trades.iterrows(): # Hata almamak için bunu düzeltiyorum
+            pass
+    
+    # Daily PnL Fixed Logic
+    if not df_all.empty:
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_trades = df_all[df_all['time'].str.contains(today)]
+        daily_pnl = 0
+        for idx, row in today_trades.iterrows():
+            if row['status'] == 'WIN':
+                daily_pnl += (row['tp1'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['tp1'])
+            elif row['status'] == 'LOSS':
+                daily_pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
+
+    if daily_pnl <= -3000:
+        st.error(f"🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})")
+    elif daily_pnl >= 1000:
+        st.success(f"✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)")
+    else:
+        st.info(f"Günlük Durum: ${daily_pnl:.2f}")
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("BAŞLANGIÇ KASASI", "$10,000")
+    k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
+    k3.metric("TOPLAM K/Z", f"${total_p:,.2f}")
+    k4.metric("GÜNLÜK K/Z", f"${daily_pnl:,.2f}")
+
+    st.markdown("---")
+    col_setup, col_chart = st.columns([1, 1])
+    with col_setup:
+        st.subheader("⚙️ Kasa Ayarları")
+        with st.form("bal_form"):
+            new_bal = st.number_input("Kasa Bakiyesi ($)", value=float(balance))
+            if st.form_submit_button("Kaydet"):
+                requests.post(UB_URL, json={"balance": new_bal})
+                st.rerun()
+    with col_chart:
+        st.subheader("📈 K/Z Grafiği")
+        if not df.empty:
+            df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
+            fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
+            fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_line, use_container_width=True) # Siliyorum
+            st.plotly_chart(fig_line, use_container_width=True)
+        else:
+            st.write("Veri bekleniyor...")
