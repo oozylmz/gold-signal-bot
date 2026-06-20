@@ -10,55 +10,34 @@ app = Flask(__name__)
 TELEGRAM_TOKEN = os.getenv("8967758978:AAFfx1F7LJ9Fr2eerAn0Y0vnaUAIhOS8YjQ")
 CHAT_ID = os.getenv("-1004490031358")
 
-# --- RÖNTGEN SAYFASI (Hata tespiti için) ---
-@app.route('/')
-def home():
-    # Sunucudaki tüm açık kapıları (rotaları) listeler
-    routes = []
-    for rule in app.url_map.iter_rules():
-        routes.append(str(rule))
-    
-    return f"""
-    <h1>Sistem Durumu: AKTİF ✅</h1>
-    <p>Sunucunuz şu an çalışıyor. Aşağıdaki kapılar (rotalar) tanımlı:</p>
-    <pre>{chr(10).join(routes)}</pre>
-    <hr>
-    <p><b>Test için şuna tıklayın:</b> <a href="/webhook">Webhook Kapısını Test Et</a></p>
-    """
-
-# --- WEBHOOK ENDPOINT ---
-@app.route('/webhook', methods=['GET', 'POST'])
-def webhook():
-    if request.method == 'GET':
-        return "Webhook Kapısı Açık! Sadece POST ile sinyal gönderebilirsiniz. ✅", 200
-        
-    if request.method == 'POST':
-        data = request.json
-        if data:
-            # Veritabanı ve Telegram işlemleri
-            save_to_db(data)
-            send_telegram_msg(data)
-            return jsonify({"status": "success"}), 200
-        else:
-            return jsonify({"status": "no data"}), 400
-    return jsonify({"status": "wrong method"}), 405
-
-# --- DİĞER FONKSİYONLAR (Aynen kalıyor) ---
+# --- VERİ TABANI FONKSİYONLARI (SÜPER GÜNCELLEME) ---
 def init_db():
     conn = sqlite3.connect('signals.db')
     c = conn.cursor()
+    # Tabloyu oluştur
     c.execute('''CREATE TABLE IF NOT EXISTS signals 
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, symbol TEXT, signal TEXT, pattern TEXT, 
-                  entry REAL, tp1 REAL, tp2 REAL, sl REAL, rsi REAL, time TEXT, status TEXT,
-                  exit_price REAL, exit_time TEXT)''') # Yeni sütunlar eklendi
+                  entry REAL, tp1 REAL, tp2 REAL, sl REAL, rsi REAL, time TEXT, status TEXT)''')
+    
+    # KRİTİK NOKTA: Eksik sütunları kontrol et ve ekle (Sürüm yükseltme)
+    try:
+        c.execute("ALTER TABLE signals ADD COLUMN exit_price REAL")
+    except sqlite3.OperationalError:
+        pass # Sütun zaten varsa hata vermez, geçer.
+        
+    try:
+        c.execute("ALTER TABLE signals ADD COLUMN exit_time TEXT")
+    except sqlite3.OperationalError:
+        pass
+        
     conn.commit()
     conn.close()
-
 
 def save_to_db(data):
     try:
         conn = sqlite3.connect('signals.db')
         c = conn.cursor()
+        # Veri ekleme (Sütun sayısı dinamik kontrol edilmeli)
         c.execute("INSERT INTO signals (symbol, signal, pattern, entry, tp1, tp2, sl, rsi, time, status) VALUES (?,?,?,?,?,?,?,?,?,?)",
                   (data.get('symbol'), data.get('signal'), data.get('pattern'), 
                    float(data.get('entry')), float(data.get('tp1')), float(data.get('tp2')), 
@@ -66,12 +45,11 @@ def save_to_db(data):
                    datetime.now().strftime("%Y-%m-%d %H:%M"), "OPEN"))
         conn.commit()
         conn.close()
-    except Exception as e: print(f"DB Hatası: {e}")
+    except Exception as e:
+        print(f"DB Kayıt Hatası: {e}")
 
 def send_telegram_msg(data):
-    if not TELEGRAM_TOKEN or not CHAT_ID:
-        print("HATA: Token veya Chat ID eksik!")
-        return
+    if not TELEGRAM_TOKEN or not CHAT_ID: return
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     msg = (f"🎯 *MGC1! SİNYAL*\n\n📦 Formasyon: `{data.get('pattern')}`\n"
            f"🚀 Yön: *{data.get('signal')}*\n💰 Giriş: `{data.get('entry')}`\n"
@@ -79,7 +57,12 @@ def send_telegram_msg(data):
            f"🛑 Stop: `{data.get('sl')}`\n📊 RSI: `{data.get('rsi')}`")
     payload = {"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"}
     requests.post(url, json=payload)
-# --- DASHBOARD VERİ API'Sİ ---
+
+# --- ROUTERLAR ---
+@app.route('/')
+def home():
+    return "Sistem Canlı ve Güncel! ✅", 200
+
 @app.route('/get_signals', methods=['GET'])
 def get_signals():
     try:
@@ -89,31 +72,29 @@ def get_signals():
         rows = c.fetchall()
         conn.close()
         
-        # Verileri JSON formatına çeviriyoruz
+        # Sütun isimlerini dinamik olarak alalım
+        columns = [description[0] for description in c.description] if 'c' in locals() else []
+        # Eğer c.description çalışmazsa manuel isimler:
+        columns = ['id', 'symbol', 'signal', 'pattern', 'entry', 'tp1', 'tp2', 'sl', 'rsi', 'time', 'status', 'exit_price', 'exit_time']
+        
         signals = []
         for row in rows:
-            signals.append({
-                "id": row[0], "symbol": row[1], "signal": row[2], 
-                "pattern": row[3], "entry": row[4], "tp1": row[5], 
-                "tp2": row[6], "sl": row[7], "rsi": row[8], 
-                "time": row[9], "status": row[10]
-            })
+            signals.append(dict(zip(columns, row)))
         return jsonify(signals), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-        # --- İŞLEM DURUMUNU GÜNCELLEME API'Sİ ---
+
 @app.route('/update_trade', methods=['POST'])
 def update_trade():
     data = request.json
     trade_id = data.get('id')
     new_status = data.get('status')
-    exit_p = data.get('exit_price') # Yeni veri: Çıkış fiyatı
+    exit_p = data.get('exit_price')
     
     if trade_id and new_status:
         try:
             conn = sqlite3.connect('signals.db')
             c = conn.cursor()
-            # Hem durumu hem de çıkış fiyatını güncelliyoruz
             c.execute("UPDATE signals SET status = ?, exit_price = ?, exit_time = ? WHERE id = ?", 
                       (new_status, exit_p, datetime.now().strftime("%Y-%m-%d %H:%M"), trade_id))
             conn.commit()
@@ -123,19 +104,17 @@ def update_trade():
             return jsonify({"error": str(e)}), 500
     return jsonify({"error": "Eksik veri"}), 400
 
-    
-    if trade_id and new_status:
-        try:
-            conn = sqlite3.connect('signals.db')
-            c = conn.cursor()
-            c.execute("UPDATE signals SET status = ? WHERE id = ?", (new_status, trade_id))
-            conn.commit()
-            conn.close()
-            return jsonify({"status": "success", "message": f"İşlem {new_status} olarak işaretlendi."}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    return jsonify({"error": "Eksik veri"}), 400
-
+@app.route('/webhook', methods=['GET', 'POST'])
+def webhook():
+    if request.method == 'GET':
+        return "Webhook Aktif! ✅", 200
+    if request.method == 'POST':
+        data = request.json
+        if data:
+            save_to_db(data)
+            send_telegram_msg(data)
+            return jsonify({"status": "success"}), 200
+    return jsonify({"status": "error"}), 400
 
 if __name__ == '__main__':
     init_db()
