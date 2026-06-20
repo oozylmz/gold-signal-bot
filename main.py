@@ -99,6 +99,25 @@ def get_signals():
         return jsonify(signals), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+        # --- İŞLEM DURUMUNU GÜNCELLEME API'Sİ ---
+@app.route('/update_trade', methods=['POST'])
+def update_trade():
+    data = request.json
+    trade_id = data.get('id')
+    new_status = data.get('status') # 'WIN' veya 'LOSS'
+    
+    if trade_id and new_status:
+        try:
+            conn = sqlite3.connect('signals.db')
+            c = conn.cursor()
+            c.execute("UPDATE signals SET status = ? WHERE id = ?", (new_status, trade_id))
+            conn.commit()
+            conn.close()
+            return jsonify({"status": "success", "message": f"İşlem {new_status} olarak işaretlendi."}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    return jsonify({"error": "Eksik veri"}), 400
+
 
 if __name__ == '__main__':
     init_db()
