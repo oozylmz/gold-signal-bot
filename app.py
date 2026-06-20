@@ -45,7 +45,7 @@ st.markdown("""
     }
     .stTabs [aria-selected="true"] { background-color: #f39c12 !important; color: black !important; }
     </style>
-    """, unsafe_allow_//html=True)
+    """, unsafe_allow_html=True)
 
 API_URL = "https://gold-signal-bot-1.onrender.com"
 S_URL = f"{API_URL}/get_signals"
@@ -59,7 +59,7 @@ st.markdown("✨ **Sinyal Takip ve Kasa Yönetim Sistemi**")
 tab1, tab2 = st.tabs(["📡 SİNYALLER", "💰 KASA TAKİP"])
 
 # ---------------------------------------------------------------------------
-# SEKME 1: SİNYALLER (Modern Dashboard)
+# SEKME 1: SİNYALLER
 # ---------------------------------------------------------------------------
 with tab1:
     def fetch_data():
@@ -68,16 +68,14 @@ with tab1:
             return pd.DataFrame(r.json()) if r.status_code == 200 else pd.DataFrame()
         except: return pd.DataFrame()
 
-    df = fetch_//data()
+    df = fetch_data()
 
     if not df.empty:
-        # KPI'lar (Görseldeki üst panel)
         total = len(df)
         buys = len(df[df['signal'] == 'BUY'])
         sells = len(df[df['signal'] == 'SELL'])
         opens = len(df[df['status'] == 'OPEN'])
         
-        # Başarı Oranı (TP2 / SL)
         wins = len(df[df['status'] == 'WIN'])
         total_closed = len(df[df['status'] != 'OPEN'])
         win_rate = (wins / total_closed * 100) if total_closed > 0 else 0
@@ -96,9 +94,7 @@ with tab1:
         
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
-            # Tabloyu sadeleştiriyoruz
             display_df = df[['time', 'pattern', 'signal', 'entry', 'sl', 'tp2', 'status']].copy()
-            # Sinyal yönüne göre renk verme (Sadece DataFrame'de görünür)
             st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
 
         with c_right:
@@ -118,13 +114,13 @@ with tab1:
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_//width=True) # Not: use_container_width olarak düzelttim
 
     else:
         st.info("Halen sinyal yok, piyasa bekleniyor...")
 
 # ---------------------------------------------------------------------------
-# SEKME 2: KASA TAKİP (Kasa Yönetim Paneli)
+# SEKME 2: KASA TAKİP
 # ---------------------------------------------------------------------------
 with tab2:
     try:
@@ -134,7 +130,6 @@ with tab2:
     except:
         balance, total_p = 0.0, 0.0
 
-    # Günlük PnL hesaplama
     df_all = fetch_data()
     daily_pnl = 0
     if not df_all.empty:
@@ -144,7 +139,6 @@ with tab2:
             if row['status'] == 'WIN': daily_pnl += (row['tp1'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['tp1'])
             if row['status'] == 'LOSS': daily_pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
 
-    # --- GÜNLÜK UYARI SİSTEMİ ---
     if daily_pnl <= -3000:
         st.error(f"🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})")
     elif daily_pnl >= 1000:
@@ -152,7 +146,6 @@ with tab2:
     else:
         st.info(f"Günlük Durum: ${daily_pnl:.2f}")
 
-    # Kasa Metrikleri
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("BAŞLANGIÇ KASASI", "$10,000")
     k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
@@ -170,7 +163,7 @@ with tab2:
                 requests.post(UB_URL, json={"balance": new_bal})
                 st.rerun()
         
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_//allow_html=True)
         st.subheader("📐 Lot Hesaplayıcı")
         with st.container():
             r_usd = st.number_input("Risk ($)", value=100.0)
@@ -184,7 +177,7 @@ with tab2:
         if not df.empty:
             df['cum_pnl'] = df['PnL'].cumsum()
             fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
-            fig_line.update_//layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_line, use_container_width=True)
         else:
             st.write("Grafik için veri bekleniyor...")
