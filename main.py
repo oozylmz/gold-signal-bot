@@ -7,8 +7,8 @@ from datetime import datetime
 app = Flask(__name__)
 
 # --- AYARLAR ---
-TELEGRAM_TOKEN = os.getenv("8967758978:AAFfx1F7LJ9Fr2eerAn0Y0vnaUAIhOS8YjQ")
-CHAT_ID = os.getenv("-1004490031358")
+TELEGRAM_TOKEN = "8967758978:AAFfx1F7LJ9Fr2eerAn0Y0vnaUAIhOS8YjQ"
+CHAT_ID = "-1004490031358"
 
 def init_db():
     conn = sqlite3.connect('signals.db')
