@@ -25,10 +25,23 @@ st.markdown("""
     }
     .stTabs [data-baseweb="tab-list"] { gap: 10px; }
     .stTabs [data-baseweb="tab"] { 
-        background-color: #161b22; 
+        background-//color: #161b22; 
         border-radius: 8px 8px 0 0; 
         color: white !important; 
     }
+    .stTabs [aria-selected="true"] { background-color: #f39c12 !important; color: black !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.markdown("""
+    <style>
+    .stApp { background-color: #0a0b10; color: #e0e0e0; }
+    div[data-testid="stMetric"] { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; }
+    h1, h2, h3 { color: #ffffff !important; font-family: 'Inter', sans-serif; }
+    .stDataFrame { border: 1px solid #30363d; border-radius: 12px; }
+    .stButton>button { background-color: #f39c12 !important; color: black !important; font-weight: bold !important; border-radius: 8px !important; }
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    .stTabs [data-baseweb="tab"] { background-color: #161b22; border-radius: 8px 8px 0 0; color: white !important; }
     .stTabs [aria-selected="true"] { background-color: #f39c12 !important; color: black !important; }
     </style>
     """, unsafe_allow_html=True)
@@ -47,7 +60,6 @@ with st.sidebar:
     if st.button("Sinyal Gönder (Test)"):
         test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
         try:
-            res = requests.post(f"{API_URL}/webhook", json=test_//data)
             res = requests.post(f"{API_URL}/webhook", json=test_data)
             if res.status_code == 200: st.success("Sinyal gönderildi! ✅")
             else: st.error("Sunucu hata verdi!")
@@ -111,13 +123,14 @@ with tab1:
                 <p><b>TP2:</b> {last['tp2']}</p>
             </div>
             """, unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_//allow_html=True) # BURAYI SİLİYORUM
             st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Halen sinyal yok, piyasa bekleniyor... Sol menüden test sinyali gönderebilirsiniz.")
+        st.info("Halen sinyal yok, piyasa bekleniyor...")
 
 with tab2:
     try:
