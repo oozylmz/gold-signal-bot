@@ -33,6 +33,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# Not: Yukarıdaki CSS'de bir // kalmış olabilir, onu temizledim:
 st.markdown("""
     <style>
     .stApp { background-color: #0a0b10; color: #e0e0e0; }
