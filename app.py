@@ -42,6 +42,36 @@ U_URL = f"{API_URL}/update_trade"
 B_URL = f"{API_URL}/get_balance"
 UB_URL = f"{API_URL}/update_balance"
 
+# --- YAN MENÜ (SIDEBAR) ---
+with st.sidebar:
+    st.header("🛠️ Sistem Kontrol")
+    st.write("✅ Sunucu: Online")
+    st.write("✅ Veritabanı: Bağlı")
+    st.markdown("---")
+    
+    # TEST BUTONU BURADA (Her zaman erişilebilir)
+    st.subheader("🚀 Hızlı Test")
+    if st.button("Sinyal Gönder (Test)"):
+        test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
+        try:
+            webhook_url = f"{API_URL}/webhook"
+            res = requests.post(webhook_url, json=test_data)
+            if res.status_code == 200:
+                st.success("Sinyal gönderildi! ✅")
+            else:
+                st.error("Hata oluştu!")
+        except Exception as e:
+            st.error(f"Hata: {e}")
+
+    st.markdown("---")
+    st.subheader("📐 Lot Hesaplayıcı")
+    r_usd = st.number_input("Risk ($)", value=100.0)
+    en_p = st.number_input("Giriş", value=2000.0)
+    st_p = st.number_input("Stop", value=1990.0)
+    res_lot = r_usd / abs(en_p - st_p) if abs(en_p - st_p) != 0 else 0
+    st.info(f"Önerilen Lot: **{res_lot:.4f}**")
+
+# --- ANA SAYFA ---
 st.title("🟡 GOLD — MGC1 HARMONIC")
 st.markdown("✨ **Sinyal Takip ve Kasa Yönetim Sistemi**")
 
@@ -81,8 +111,9 @@ with tab1:
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
+            # Tablodaki sütunları görseldeki gibi düzenle
             display_df = df[['time', 'pattern', 'signal', 'entry', 'sl', 'tp2', 'status']].copy()
-            st.dataframe(display_//df.sort_values('id', ascending=False), use_container_width=True) # Bu satırdaki / işaretlerini siliyorum
+            st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
 
         with c_right:
             st.subheader("🎯 Son Sinyal Detayı")
@@ -97,14 +128,14 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_//allow_html=True) # Not: Buradaki // ları siliyorum
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
 
     else:
-        st.info("Halen sinyal yok, piyasa bekleniyor...")
+        st.info("Halen sinyal yok, piyasa bekleniyor... Sol menüden test sinyali gönderebilirsiniz.")
 
 # ---------------------------------------------------------------------------
 # SEKME 2: KASA TAKİP
@@ -128,7 +159,7 @@ with tab2:
 
     if daily_pnl <= -3000:
         st.error(f"🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})")
-    elif daily_pnl >= 1000:
+    elif daily_//pnl >= 1000:
         st.success(f"✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR) - DURUN!")
     else:
         st.info(f"Günlük Durum: ${daily_pnl:.2f}")
@@ -149,15 +180,6 @@ with tab2:
             if st.form_submit_button("Kaydet"):
                 requests.post(UB_URL, json={"balance": new_bal})
                 st.rerun()
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.subheader("📐 Lot Hesaplayıcı")
-        with st.container():
-            r_usd = st.number_input("Risk ($)", value=100.0)
-            en_p = st.number_input("Giriş", value=2000.0)
-            st_p = st.number_input("Stop", value=1990.0)
-            res_lot = r_usd / abs(en_p - st_p) if abs(en_p - st_p) != 0 else 0
-            st.warning(f"Önerilen Lot: **{res_lot:.4f}**")
 
     with col_chart:
         st.subheader("📈 K/Z Grafiği")
