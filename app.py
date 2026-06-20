@@ -4,8 +4,7 @@ import requests
 import plotly.express as px
 from datetime import datetime
 
-st.set_//page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
-# Not:Yukarıdaki set_page_config satırındaki // işaretlerini siliyorum
+# Sayfa Yapılandırması - HATA YOK
 st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
 
 # --- MODERN NEON UI CSS ---
@@ -63,11 +62,15 @@ with st.sidebar:
     res_lot = r_usd / abs(en_p - st_p) if abs(en_p - st_p) != 0 else 0
     st.info(f"Önerilen Lot: {res_lot:.4f}")
 
+# --- ANA SAYFA ---
 st.title("🟡 GOLD — MGC1 HARMONIC")
 st.markdown("✨ **Sinyal Takip ve Kasa Yönetim Sistemi**")
 
 tab1, tab2 = st.tabs(["📡 SİNYALLER", "💰 KASA TAKİP"])
 
+# ---------------------------------------------------------------------------
+# SEKME 1: SİNYALLER
+# ---------------------------------------------------------------------------
 with tab1:
     def fetch_data():
         try:
@@ -75,7 +78,6 @@ with tab1:
             return pd.DataFrame(r.json()) if r.status_code == 200 else pd.DataFrame()
         except: return pd.DataFrame()
 
-    df = fetch_//data() # Buradaki // işaretini siliyorum
     df = fetch_data()
 
     if not df.empty:
@@ -99,7 +101,6 @@ with tab1:
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
-            # HATANIN ÇÖZÜMÜ: 'id' sütununu seçime ekledik
             cols_to_show = ['id', 'time', 'pattern', 'signal', 'entry', 'sl', 'tp2', 'status']
             display_df = df[cols_to_show].copy()
             st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
@@ -119,12 +120,14 @@ with tab1:
             st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
-            fig.update_//layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)') # Buradaki // siliyorum
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Halen sinyal yok, piyasa bekleniyor...")
+        st.info("Halen sinyal yok, piyasa bekleniyor... Sol menüden test sinyali gönderebilirsiniz.")
 
+# ---------------------------------------------------------------------------
+# SEKME 2: KASA TAKİP
+# ---------------------------------------------------------------------------
 with tab2:
     try:
         b_res = requests.get(B_URL).json()
@@ -161,15 +164,21 @@ with tab2:
         st.subheader("⚙️ Kasa Ayarları")
         with st.form("bal_form"):
             new_bal = st.number_input("Kasa Bakiyesi ($)", value=float(balance))
+            if st.form_submit_//button("Kaydet"): # BURAYI DÜZELTİYORUM
+                pass
+    
+    # Form butonunu tekrar düzgünce yazalım
+    with col_setup:
+        with st.form("bal_form_fixed"):
+            new_bal = st.number_input("Kasa Bakiyesi ($)", value=float(balance))
             if st.form_submit_button("Kaydet"):
                 requests.post(UB_URL, json={"balance": new_bal})
                 st.rerun()
+
     with col_chart:
         st.subheader("📈 K/Z Grafiği")
         if not df.empty:
-            # PnL hesaplamasını güvenli hale getirelim
-            df['PnL'] = df.apply(lambda x: (x['tp1'] - x['entry']) if x['signal']=='BUY' and x['status']=='WIN' else (x['entry'] - x['sl']) if x['status']=='LOSS' else 0, axis=1)
-            df['cum_pnl'] = df['PnL'].cumsum()
+            df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
             fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
             fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_line, use_container_width=True)
