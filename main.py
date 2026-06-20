@@ -6,7 +6,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# --- AYARLAR ---
+# --- AYARLAR (DİREKT TANIMLAMA - ARTIK HATA YOK) ---
 TELEGRAM_TOKEN = "8967758978:AAFfx1F7LJ9Fr2eerAn0Y0vnaUAIhOS8YjQ"
 CHAT_ID = "-1004490031358"
 
@@ -40,14 +40,7 @@ def save_to_db(data):
     except Exception as e: print(f"DB Hatası: {e}")
 
 def send_telegram_msg(data):
-    # HATA AYIKLAMA: Token ve ID kontrolü
-    if not TELEGRAM_TOKEN:
-        print("🚨 HATA: TELEGRAM_TOKEN bulunamadı! Render Environment Variables'ı kontrol edin.")
-        return
-    if not CHAT_ID:
-        print("🚨 HATA: CHAT_ID bulunamadı! Render Environment Variables'ı kontrol edin.")
-        return
-
+    # Artık os.getenv olmadığı için doğrudan çalışacak
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     msg = (f"🎯 *MGC1! SİNYAL*\n\n📦 Formasyon: `{data.get('pattern')}`\n"
            f"🚀 Yön: *{data.get('signal')}*\n💰 Giriş: `{data.get('entry')}`\n"
@@ -61,14 +54,13 @@ def send_telegram_msg(data):
         if response.status_code == 200:
             print("✅ Mesaj başarıyla gönderildi!")
         else:
-            # BURASI ÇOK ÖNEMLİ: Telegram'ın verdiği gerçek hata mesajını yazdırır
             print(f"❌ Telegram Hatası! Kod: {response.status_code} - Cevap: {response.text}")
     except Exception as e:
         print(f"🚨 Bağlantı Hatası: {e}")
 
 @app.route('/')
 def home():
-    return "SÜRÜM 5.0 - KODLAR GÜNCELLENDİ! ✅ <br>Token Durumu: " + str(TELEGRAM_TOKEN)
+    return f"SÜRÜM 6.0 - KESİN ÇÖZÜM ✅ <br>Token Durumu: {TELEGRAM_TOKEN[:10]}... (Yüklendi)", 200
 
 @app.route('/get_signals', methods=['GET'])
 def get_signals():
