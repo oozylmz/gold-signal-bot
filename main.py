@@ -49,9 +49,11 @@ def init_db():
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS signals 
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, symbol TEXT, signal TEXT, pattern TEXT, 
-                  entry REAL, tp1 REAL, tp2 REAL, sl REAL, rsi REAL, time TEXT, status TEXT)''')
+                  entry REAL, tp1 REAL, tp2 REAL, sl REAL, rsi REAL, time TEXT, status TEXT,
+                  exit_price REAL, exit_time TEXT)''') # Yeni sütunlar eklendi
     conn.commit()
     conn.close()
+
 
 def save_to_db(data):
     try:
@@ -105,6 +107,27 @@ def update_trade():
     data = request.json
     trade_id = data.get('id')
     new_status = data.get('status') # 'WIN' veya 'LOSS'
+    @app.route('/update_trade', methods=['POST'])
+def update_trade():
+    data = request.json
+    trade_id = data.get('id')
+    new_status = data.get('status')
+    exit_p = data.get('exit_price') # Yeni veri: Çıkış fiyatı
+    
+    if trade_id and new_status:
+        try:
+            conn = sqlite3.connect('signals.db')
+            c = conn.cursor()
+            # Hem durumu hem de çıkış fiyatını güncelliyoruz
+            c.execute("UPDATE signals SET status = ?, exit_price = ?, exit_time = ? WHERE id = ?", 
+                      (new_status, exit_p, datetime.now().strftime("%Y-%m-%d %H:%M"), trade_id))
+            conn.commit()
+            conn.close()
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    return jsonify({"error": "Eksik veri"}), 400
+
     
     if trade_id and new_status:
         try:
