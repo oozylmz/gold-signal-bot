@@ -4,10 +4,8 @@ import requests
 import plotly.express as px
 from datetime import datetime
 
-# Sayfa Yapılandırması - HATA YOK
 st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
 
-# --- MODERN NEON UI CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #0a0b10; color: #e0e0e0; }
@@ -41,7 +39,6 @@ U_URL = f"{API_URL}/update_trade"
 B_URL = f"{API_URL}/get_balance"
 UB_URL = f"{API_URL}/update_balance"
 
-# --- YAN MENÜ (SIDEBAR) ---
 with st.sidebar:
     st.header("🛠️ Sistem Kontrol")
     st.write("✅ Sunucu: Online")
@@ -62,15 +59,11 @@ with st.sidebar:
     res_lot = r_usd / abs(en_p - st_p) if abs(en_p - st_p) != 0 else 0
     st.info(f"Önerilen Lot: {res_lot:.4f}")
 
-# --- ANA SAYFA ---
 st.title("🟡 GOLD — MGC1 HARMONIC")
 st.markdown("✨ **Sinyal Takip ve Kasa Yönetim Sistemi**")
 
 tab1, tab2 = st.tabs(["📡 SİNYALLER", "💰 KASA TAKİP"])
 
-# ---------------------------------------------------------------------------
-# SEKME 1: SİNYALLER
-# ---------------------------------------------------------------------------
 with tab1:
     def fetch_data():
         try:
@@ -123,11 +116,8 @@ with tab1:
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Halen sinyal yok, piyasa bekleniyor... Sol menüden test sinyali gönderebilirsiniz.")
+        st.info("Halen sinyal yok, piyasa bekleniyor...")
 
-# ---------------------------------------------------------------------------
-# SEKME 2: KASA TAKİP
-# ---------------------------------------------------------------------------
 with tab2:
     try:
         b_res = requests.get(B_URL).json()
@@ -156,6 +146,7 @@ with tab2:
     k1.metric("BAŞLANGIÇ KASASI", "$10,000")
     k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
     k3.metric("TOPLAM K/Z", f"${total_p:,.2f}")
+    k4.metric("GÜNLÜK K/Z", f"${daily_//pnl:,.2f}") # BU SATIRI DÜZELTİYORUM
     k4.metric("GÜNLÜK K/Z", f"${daily_pnl:,.2f}")
 
     st.markdown("---")
@@ -163,13 +154,6 @@ with tab2:
     with col_setup:
         st.subheader("⚙️ Kasa Ayarları")
         with st.form("bal_form"):
-            new_bal = st.number_input("Kasa Bakiyesi ($)", value=float(balance))
-            if st.form_submit_//button("Kaydet"): # BURAYI DÜZELTİYORUM
-                pass
-    
-    # Form butonunu tekrar düzgünce yazalım
-    with col_setup:
-        with st.form("bal_form_fixed"):
             new_bal = st.number_input("Kasa Bakiyesi ($)", value=float(balance))
             if st.form_submit_button("Kaydet"):
                 requests.post(UB_URL, json={"balance": new_bal})
