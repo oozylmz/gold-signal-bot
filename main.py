@@ -106,11 +106,6 @@ def get_signals():
 def update_trade():
     data = request.json
     trade_id = data.get('id')
-    new_status = data.get('status') # 'WIN' veya 'LOSS'
-    @app.route('/update_trade', methods=['POST'])
-def update_trade():
-    data = request.json
-    trade_id = data.get('id')
     new_status = data.get('status')
     exit_p = data.get('exit_price') # Yeni veri: Çıkış fiyatı
     
