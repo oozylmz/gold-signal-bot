@@ -68,7 +68,7 @@ def send_telegram_msg(data):
 
 @app.route('/')
 def home():
-    return f"Sistem Canlı! ✅ <br>Token Durumu: {'Var' if TELEGRAM_TOKEN else 'YOK'} <br>ID Durumu: {'Var' if CHAT_ID else 'YOK'}", 200
+    return "SÜRÜM 5.0 - KODLAR GÜNCELLENDİ! ✅ <br>Token Durumu: " + str(TELEGRAM_TOKEN)
 
 @app.route('/get_signals', methods=['GET'])
 def get_signals():
