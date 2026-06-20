@@ -16,7 +16,7 @@ st.markdown("""
         background-color: #161b22; 
         border: 1px solid #30363d; 
         border-radius: 12px; 
-        padding: 40px;
+        padding: 20px;
     }
     h1, h2, h3 { color: #ffffff !important; font-family: 'Inter', sans-serif; }
     .stDataFrame { border: 1px solid #30363d; border-radius: 12px; }
