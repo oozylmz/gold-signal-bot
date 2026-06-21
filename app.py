@@ -143,6 +143,7 @@ with tab2:
     df_all = fetch_data()
     daily_pnl = 0
         if not df_all.empty:
+            
             today = datetime.now().strftime("%Y-%m-%d")
             today_trades = df_all[df_all['time'].str.contains(today)]
             for _, row in today_trades.iterrows():
@@ -155,7 +156,6 @@ with tab2:
         st.markdown(f'<div style="background-color:#00c853; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="background-color:#161b22; color:white; padding:20px; border-radius:10px; text-align:center;">Günlük Durum: ${daily_pnl:.2f}</div>', unsafe_allow_html=True)
-
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("BAŞLANGIÇ KASASI", "$100,000")
     k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
