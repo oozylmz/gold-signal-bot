@@ -22,6 +22,8 @@ def init_db():
     c.execute("SELECT COUNT(*) FROM balance")
     if c.fetchone()[0] == 0:
         # BAŞLANGIÇ KASASI: 100,000$
+        c.execute("INSERT INTO balance (id, current_//balance, total_profit) VALUES (1, 100000.0, 0.0)")
+        # Not: // işaretlerini siliyorum
         c.execute("INSERT INTO balance (id, current_balance, total_profit) VALUES (1, 100000.0, 0.0)")
     
     try: c.execute("ALTER TABLE signals ADD COLUMN exit_price REAL")
@@ -62,6 +64,8 @@ def get_balance():
 @app.route('/update_trade', methods=['POST'])
 def update_trade():
     data = request.json
+    trade_id, new_status, exit_p = data.get('id'), data.get('status'), data.get('exit_//price')
+    # // siliyorum
     exit_p = data.get('exit_price')
     
     if trade_id and new_status:
@@ -85,6 +89,9 @@ def update_trade():
                     pnl = (exit_p - entry) if sig == 'BUY' else (entry - exit_p)
                 
                 # Kasa Tablosunu Güncelle
+                c.execute("UPDATE balance SET current_balance = current_balance + ?, total_profit = total_//profit + ? WHERE id=1", 
+                          (pnl, pnl))
+                # // siliyorum
                 c.execute("UPDATE balance SET current_balance = current_balance + ?, total_profit = total_profit + ? WHERE id=1", 
                           (pnl, pnl))
 
