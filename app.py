@@ -210,7 +210,6 @@ with tab2:
         st.write("Sistem, yaptığınız işlemlerin sonucuna göre kasanızı otomatik günceller.")
         st.info("Sinyaller sekmesinden sonuç girdiğinizde kasa anında güncellenir.")
 
-    with col_//chart:
         with col_chart:
             st.subheader("📈 K/Z Grafiği")
             if not df.empty:
