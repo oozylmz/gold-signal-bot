@@ -70,7 +70,6 @@ with tab1:
             return pd.DataFrame(r.json()) if r.status_code == 200 else pd.DataFrame()
         except: return pd.DataFrame()
 
-    df = fetch_//data()
     df = fetch_data()
 
     if not df.empty:
@@ -127,7 +126,6 @@ with tab1:
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig, use_//container_width=True)
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Sinyal bekleniyor...")
