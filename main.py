@@ -15,26 +15,21 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS signals 
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, symbol TEXT, signal TEXT, pattern TEXT, 
                   entry REAL, tp1 REAL, tp2 REAL, sl REAL, rsi REAL, time TEXT, status TEXT,
-                  exit_price REAL, exit_time TEXT)''')
+                  pnl REAL, exit_time TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS balance 
                  (id INTEGER PRIMARY KEY, current_balance REAL, total_profit REAL)''')
     
     c.execute("SELECT COUNT(*) FROM balance")
     if c.fetchone()[0] == 0:
-        # BAŞLANGIÇ KASASI: 100,000$
         c.execute("INSERT INTO balance (id, current_balance, total_profit) VALUES (1, 100000.0, 0.0)")
     
-    try: c.execute("ALTER TABLE signals ADD COLUMN exit_price REAL")
-    except: pass
-    try: c.execute("ALTER TABLE signals ADD COLUMN exit_time TEXT")
-    except: pass
     conn.commit()
     conn.close()
 
 init_db()
 
 @app.route('/')
-def home(): return "Sistem Aktif ✅", 200
+def home(): return "Quant Terminal v3.0 Active ✅", 200
 
 @app.route('/get_signals', methods=['GET'])
 def get_signals():
@@ -44,7 +39,7 @@ def get_signals():
         c.execute("SELECT * FROM signals ORDER BY id DESC")
         rows = c.fetchall()
         conn.close()
-        cols = ['id', 'symbol', 'signal', 'pattern', 'entry', 'tp1', 'tp2', 'sl', 'rsi', 'time', 'status', 'exit_price', 'exit_time']
+        cols = ['id', 'symbol', 'signal', 'pattern', 'entry', 'tp1', 'tp2', 'sl', 'rsi', 'time', 'status', 'pnl', 'exit_time']
         return jsonify([dict(zip(cols, row)) for row in rows]), 200
     except Exception as e: return jsonify({"error": str(e)}), 500
 
@@ -62,31 +57,22 @@ def get_balance():
 @app.route('/update_trade', methods=['POST'])
 def update_trade():
     data = request.json
-    exit_p = data.get('exit_price')
+    trade_id = data.get('id')
+    new_status = data.get('status')
+    pnl_value = float(data.get('pnl', 0)) # Girilen K/Z miktarı
     
     if trade_id and new_status:
         try:
             conn = sqlite3.connect('signals.db')
             c = conn.cursor()
             
-            # 1. Sinyal durumunu güncelle
-            c.execute("UPDATE signals SET status = ?, exit_price = ?, exit_time = ? WHERE id = ?", 
-                      (new_status, exit_p, datetime.now().strftime("%Y-%m-%d %H:%M"), trade_id))
+            # 1. Sinyal durumunu ve PnL miktarını güncelle
+            c.execute("UPDATE signals SET status = ?, pnl = ?, exit_time = ? WHERE id = ?", 
+                      (new_status, pnl_value, datetime.now().strftime("%Y-%m-%d %H:%M"), trade_id))
             
-            # 2. Kar/Zarar Hesapla ve Kasaya Ekle
-            c.execute("SELECT signal, entry FROM signals WHERE id = ?", (trade_id,))
-            res = c.fetchone()
-            if res:
-                sig, entry = res[0], res[1]
-                pnl = 0
-                if new_status == 'WIN':
-                    pnl = (exit_p - entry) if sig == 'BUY' else (entry - exit_p)
-                elif new_status == 'LOSS':
-                    pnl = (exit_p - entry) if sig == 'BUY' else (entry - exit_p)
-                
-                # Kasa Tablosunu Güncelle
-                c.execute("UPDATE balance SET current_balance = current_balance + ?, total_profit = total_profit + ? WHERE id=1", 
-                          (pnl, pnl))
+            # 2. Kasayı Güncelle (Doğrudan ekle/çıkar)
+            c.execute("UPDATE balance SET current_balance = current_balance + ?, total_profit = total_profit + ? WHERE id=1", 
+                      (pnl_value, pnl_value))
 
             conn.commit()
             conn.close()
@@ -98,9 +84,11 @@ def update_trade():
 def webhook():
     data = request.json
     if data:
+        save_to_//db(data)
+        # // siliyorum
         save_to_db(data)
         send_telegram_msg(data)
-        return jsonify({"//": "success"}), 200
+        return jsonify({"status": "success"}), 200
     return jsonify({"status": "error"}), 400
 
 def save_to_db(data):
