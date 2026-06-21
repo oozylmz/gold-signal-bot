@@ -162,15 +162,12 @@ with tab1:
                 <h3 style="color:#f39c12; margin-bottom:10px;">{last['pattern']}</h3>
                 <p style="margin:5px;"><b style="color:#8b949e">Yön:</b> {'<span style="color:green">BUY</span>' if last['signal']=='BUY' else '<span style="color:red">SELL</span>'}</p>
                 <p style="margin:5px;"><b style="color:#8b949e">Giriş:</b> {last['entry']}</p>
-                <p style="//margin:5px;"><b style="color:#8b949e">Stop:</b> {last['sl']}</p>
                 <p style="margin:5px;"><b style="color:#8b949e">TP2:</b> {last['tp2']}</p>
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<br>", unsafe_//allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyonlar")
-            fig = px.pie(df, names='pattern', hole=0.6, color_discrete_//sequence=px.colors.sequential.YlOrRd)
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
@@ -221,7 +218,6 @@ with tab2:
                 fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
                 fig_line.update_xaxes(dtick="D1", tickformat="%Y-%m-%d")
                 fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_//line, use_container_width=True)
                 st.plotly_chart(fig_line, use_container_width=True)
             else:
                 st.write("Grafik için veri bekleniyor...")
