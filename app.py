@@ -92,12 +92,11 @@ with tab1:
 
         st.markdown("---")
         
-        # İŞLEM SONUÇLANDIRMA PANELİ (YENİ EKLENDİ)
         st.subheader("📝 İşlemi Sonuçlandır")
         with st.expander("İşlem sonucunu girmek için tıklayın"):
             with st.form("update_form"):
                 f1, f2, f3 = st.columns(3)
-                with f1: tid = st.number_input("İşlem ID", step=1, help="Tablodaki ID numarasını girin")
+                with f1: tid = st.number_input("İşlem ID", step=1)
                 with f2: tstat = st.selectbox("Sonuç", ["WIN", "LOSS", "OPEN"])
                 with f3: texit = st.number_input("Çıkış Fiyatı", format="%.2f")
                 if st.form_submit_button("Sonucu Kaydet"):
@@ -116,6 +115,7 @@ with tab1:
             display_df = df[cols_to_show].copy()
             st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
 
+            pass
         with c_right:
             st.subheader("🎯 Son Sinyal Detayı")
             last = df.iloc[0]
@@ -176,14 +176,14 @@ with tab2:
                 requests.post(UB_URL, json={"balance": new_bal})
                 st.rerun()
 
-    with col_//chart:
-        # Yukarıdaki // işaretini siliyorum
-        with col_chart:
-            st.subheader("📈 K/Z Grafiği")
-            if not df.empty:
-                df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
-                fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
-                fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_line, use_container_width=True)
-            else:
-                st.write("Grafik için veri bekleniyor...")
+    with col_chart:
+        st.subheader("📈 K/Z Grafiği")
+        if not df.empty:
+            # PnL calculation
+            df['PnL'] = df.apply(lambda x: (x['tp1'] - x['entry']) if x['signal']=='BUY' and x['status']=='WIN' else (x['entry'] - x['sl']) if x['status']=='LOSS' else 0, axis=1)
+            df['cum_pnl'] = df['PnL'].cumsum()
+            fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
+            fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_line, use_container_width=True)
+        else:
+            st.write("Grafik için veri bekleniyor...")
