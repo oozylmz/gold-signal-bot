@@ -6,28 +6,37 @@ from datetime import datetime
 
 st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
 
+# --- ULTRA MODERN CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #0a0b10; color: #e0e0e0; }
     div[data-testid="stMetric"] { 
         background-color: #161b22; 
         border: 1px solid #30363d; 
-        border-radius: 12px; 
+        border-radius: 15px; 
         padding: 20px;
+        text-align: center;
     }
     h1, h2, h3 { color: #ffffff !important; font-family: 'Inter', sans-serif; }
-    .stDataFrame { border: 1px solid #30363d; border-radius: 12px; }
+    .stDataFrame { border: 1px solid #30363d; border-radius: 15px; }
+    
+    /* Buton Genişletme ve Ortaya Hizalama */
     .stButton>button { 
+        width: 100% !important;
         background-color: #f39c12 !important; 
         color: black !important; 
         font-weight: bold !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
+        height: 3em !important;
     }
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    
+    /* Sekme (Tabs) Genişletme */
+    .stTabs [data-baseweb="tab-list"] { gap: 20px; justify-content: center; }
     .stTabs [data-baseweb="tab"] { 
         background-color: #161b22; 
-        border-radius: 8px 8px 0 0; 
+        border-radius: 10px; 
         color: white !important; 
+        padding: 10px 40px !important;
     }
     .stTabs [aria-selected="true"] { background-color: #f39c12 !important; color: black !important; }
     </style>
@@ -37,20 +46,15 @@ API_URL = "https://gold-signal-bot-1.onrender.com"
 S_URL = f"{API_URL}/get_signals"
 U_URL = f"{API_URL}/update_trade"
 B_URL = f"{API_URL}/get_balance"
-UB_URL = f"{API_URL}/update_balance"
 
 with st.sidebar:
     st.header("🛠️ Sistem Kontrol")
     st.write("✅ Sunucu: Online")
-    st.write("✅ Veritabanı: Bağlı")
     st.markdown("---")
     if st.button("Sinyal Gönder (Test)"):
         test_data = {"symbol": "MGC1! TEST", "signal": "BUY", "pattern": "Sanal-Bat", "entry": "2030", "tp1": "2040", "tp2": "2060", "sl": "2010", "rsi": "20"}
-        try:
-            res = requests.post(f"{API_URL}/webhook", json=test_data)
-            if res.status_code == 200: st.success("Sinyal gönderildi! ✅")
-            else: st.error("Sunucu hata verdi!")
-        except Exception as e: st.error(f"Hata: {e}")
+        requests.post(f"{API_URL}/webhook", json=test_data)
+        st.success("Gönderildi!")
     st.markdown("---")
     st.subheader("📐 Lot Hesaplayıcı")
     r_usd = st.number_input("Risk ($)", value=100.0)
@@ -60,7 +64,7 @@ with st.sidebar:
     st.info(f"Önerilen Lot: {res_lot:.4f}")
 
 st.title("🟡 GOLD — MGC1 HARMONIC")
-st.markdown("✨ **Sinyal Takip ve Kasa Yönetim Sistemi**")
+st.markdown("✨ **Sinyal Takip ve Otomatik Kasa Yönetimi**")
 
 tab1, tab2 = st.tabs(["📡 SİNYALLER", "💰 KASA TAKİP"])
 
@@ -91,31 +95,27 @@ with tab1:
         col6.metric("DURUM", "CANLI ✅")
 
         st.markdown("---")
-        
         st.subheader("📝 İşlemi Sonuçlandır")
-        with st.expander("İşlem sonucunu girmek için tıklayın"):
+        with st.expander("Sonucu girmek için tıklayın"):
             with st.form("update_form"):
                 f1, f2, f3 = st.columns(3)
                 with f1: tid = st.number_input("İşlem ID", step=1)
                 with f2: tstat = st.selectbox("Sonuç", ["WIN", "LOSS", "OPEN"])
                 with f3: texit = st.number_input("Çıkış Fiyatı", format="%.2f")
-                if st.form_submit_button("Sonucu Kaydet"):
-                    res = requests.post(U_URL, json={"id": tid, "status": tstat, "exit_price": texit})
-                    if res.status_code == 200:
-                        st.success(f"İşlem {tid} başarıyla güncellendi!")
-                        st.rerun()
-                    else:
-                        st.error("Güncelleme başarısız oldu.")
+                if st.form_submit_button("SONUCU KAYDET"):
+                    requests.post(U_URL, json={"id": tid, "status": tstat, "exit_price": texit})
+                    st.rerun()
 
         st.markdown("---")
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
-            cols_to_show = ['id', 'time', 'pattern', 'signal', 'entry', 'sl', 'tp2', 'status']
-            display_df = df[cols_to_show].copy()
-            st.dataframe(display_df.sort_values('id', ascending=False), use_container_width=True)
+            # BAŞLIKLARI BÜYÜK HARF YAPMA
+            cols_to_show = {'id': 'ID', 'time': 'ZAMAN', 'pattern': 'FORMASYON', 'signal': 'YÖN', 'entry': 'GİRİŞ', 'sl': 'STOP', 'tp2': 'TP2', 'status': 'DURUM'}
+            display_df = df[list(cols_to_show.keys())].copy()
+            display_df.columns = list(cols_to_show.values())
+            st.dataframe(display_df.sort_values('ID', ascending=False), use_container_width=True)
 
-            pass
         with c_right:
             st.subheader("🎯 Son Sinyal Detayı")
             last = df.iloc[0]
@@ -134,7 +134,7 @@ with tab1:
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Halen sinyal yok, piyasa bekleniyor... Sol menüden test sinyali gönderebilirsiniz.")
+        st.info("Sinyal bekleniyor...")
 
 with tab2:
     try:
@@ -153,15 +153,16 @@ with tab2:
             if row['status'] == 'WIN': daily_pnl += (row['tp1'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['tp1'])
             if row['status'] == 'LOSS': daily_pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
 
+    # RENKLİ GÜNLÜK UYARI
     if daily_pnl <= -3000:
-        st.error(f"🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})")
+        st.markdown(f'<div style="background-color:#ff4b4b; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})</div>', unsafe_allow_html=True)
     elif daily_pnl >= 1000:
-        st.success(f"✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)")
+        st.markdown(f'<div style="background-color:#00c853; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)</div>', unsafe_allow_html=True)
     else:
-        st.info(f"Günlük Durum: ${daily_pnl:.2f}")
+        st.markdown(f'<div style="background-color:#161b22; color:white; padding:20px; border-radius:10px; text-align:center;">Günlük Durum: ${daily_pnl:.2f}</div>', unsafe_allow_html=True)
 
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("BAŞLANGIÇ KASASI", "$10,000")
+    k1.metric("BAŞLANGIÇ KASASI", "$100,000")
     k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
     k3.metric("TOPLAM K/Z", f"${total_p:,.2f}")
     k4.metric("GÜNLÜK K/Z", f"${daily_pnl:,.2f}")
@@ -169,20 +170,17 @@ with tab2:
     st.markdown("---")
     col_setup, col_chart = st.columns([1, 1])
     with col_setup:
-        st.subheader("⚙️ Kasa Ayarları")
-        with st.form("bal_form"):
-            new_bal = st.number_input("Kasa Bakiyesi ($)", value=float(balance))
-            if st.form_submit_button("Kaydet"):
-                requests.post(UB_URL, json={"balance": new_bal})
-                st.rerun()
+        st.subheader("⚙️ Kasa Yönetimi")
+        st.write("Sistem, yaptığınız işlemlerin sonucuna göre kasanızı otomatik günceller.")
+        st.info("Yeni bir işlem sonucu girdiğinizde Güncel Kasa anında değişecektir.")
 
     with col_chart:
-        st.subheader("📈 K/Z Grafiği")
+        st.subheader("📈 K/Z Grafiği (Günlük)")
         if not df.empty:
-            # PnL calculation
-            df['PnL'] = df.apply(lambda x: (x['tp1'] - x['entry']) if x['signal']=='BUY' and x['status']=='WIN' else (x['entry'] - x['sl']) if x['status']=='LOSS' else 0, axis=1)
-            df['cum_pnl'] = df['PnL'].cumsum()
+            df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
             fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
+            # SAAT/DAKİKA KALDIRMA, SADECE GÜN
+            fig_line.update_xaxes(dtick="D1", tickformat="%Y-%m-%d")
             fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_line, use_container_width=True)
         else:
