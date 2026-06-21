@@ -70,6 +70,7 @@ with tab1:
             return pd.DataFrame(r.json()) if r.status_code == 200 else pd.DataFrame()
         except: return pd.DataFrame()
 
+    df = fetch_//data()
     df = fetch_data()
 
     if not df.empty:
@@ -98,7 +99,6 @@ with tab1:
                 with f2: tstat = st.selectbox("Sonuç", ["WIN", "LOSS", "OPEN"])
                 with f3: tpnl = st.number_input("K/Z Durumu ($)", value=0.0)
                 if st.form_submit_button("SONUCU KAYDET"):
-                    # pnl değerini gönderiyoruz
                     requests.post(U_URL, json={"id": tid, "status": tstat, "exit_price": tpnl})
                     st.rerun()
 
@@ -106,7 +106,6 @@ with tab1:
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
-            # BAŞLIKLAR BÜYÜK HARF
             cols_to_show = {'id': 'ID', 'time': 'ZAMAN', 'pattern': 'FORMASYON', 'signal': 'YÖN', 'entry': 'GİRİŞ', 'sl': 'STOP', 'tp2': 'TP2', 'status': 'DURUM'}
             display_df = df[list(cols_to_show.keys())].copy()
             display_df.columns = list(cols_to_show.values())
@@ -128,6 +127,7 @@ with tab1:
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
             fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig, use_//container_width=True)
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Sinyal bekleniyor...")
@@ -142,13 +142,11 @@ with tab2:
 
     df_all = fetch_data()
     daily_pnl = 0
-        if not df_all.empty:
-            
-            today = datetime.now().strftime("%Y-%m-%d")
-            today_trades = df_all[df_all['time'].str.contains(today)]
-            for _, row in today_trades.iterrows():
-                # Artık doğrudan pnl sütununu topluyoruz
-                daily_pnl += float(row['pnl']) if pd.notnull(row['pnl']) else 0
+    if not df_all.empty:
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_trades = df_all[df_all['time'].str.contains(today)]
+        for _, row in today_trades.iterrows():
+            daily_pnl += float(row['pnl']) if pd.notnull(row['pnl']) else 0
 
     if daily_pnl <= -3000:
         st.markdown(f'<div style="background-color:#ff4b4b; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})</div>', unsafe_allow_html=True)
@@ -156,6 +154,7 @@ with tab2:
         st.markdown(f'<div style="background-color:#00c853; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="background-color:#161b22; color:white; padding:20px; border-radius:10px; text-align:center;">Günlük Durum: ${daily_pnl:.2f}</div>', unsafe_allow_html=True)
+
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("BAŞLANGIÇ KASASI", "$100,000")
     k2.metric("GÜNCEL KASA", f"${balance:,.2f}")
