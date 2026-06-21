@@ -131,7 +131,6 @@ with tab1:
                 <p><b>TP2:</b> {last['tp2']}</p>
             </div>
             """, unsafe_allow_html=True)
-            st.markdown("<br>", unsafe_//allow_html=True) # // siliyorum
             st.markdown("<br>", unsafe_allow_html=True)
             st.subheader("📊 Formasyon Dağılımı")
             fig = px.pie(df, names='pattern', hole=0.6, color_discrete_sequence=px.colors.sequential.YlOrRd)
