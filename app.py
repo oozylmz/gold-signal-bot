@@ -6,7 +6,6 @@ from datetime import datetime
 
 st.set_page_config(page_title="GOLD-MGC1 QUANT", layout="wide", page_icon="💰")
 
-# --- ULTRA MODERN CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #0a0b10; color: #e0e0e0; }
@@ -19,8 +18,6 @@ st.markdown("""
     }
     h1, h2, h3 { color: #ffffff !important; font-family: 'Inter', sans-serif; }
     .stDataFrame { border: 1px solid #30363d; border-radius: 15px; }
-    
-    /* Buton Genişletme ve Ortaya Hizalama */
     .stButton>button { 
         width: 100% !important;
         background-color: #f39c12 !important; 
@@ -29,8 +26,6 @@ st.markdown("""
         border-radius: 10px !important;
         height: 3em !important;
     }
-    
-    /* Sekme (Tabs) Genişletme */
     .stTabs [data-baseweb="tab-list"] { gap: 20px; justify-content: center; }
     .stTabs [data-baseweb="tab"] { 
         background-color: #161b22; 
@@ -42,7 +37,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-API_URL = "https://gold-//signal-bot-1.onrender.com" # // siliyorum
 API_URL = "https://gold-signal-bot-1.onrender.com"
 S_URL = f"{API_URL}/get_signals"
 U_URL = f"{API_URL}/update_trade"
@@ -102,18 +96,17 @@ with tab1:
                 f1, f2, f3 = st.columns(3)
                 with f1: tid = st.number_input("İşlem ID", step=1)
                 with f2: tstat = st.selectbox("Sonuç", ["WIN", "LOSS", "OPEN"])
-                with f3: texit = st.number_input("Çıkış Fiyatı", format="%.2f")
+                with f3: tpnl = st.number_input("K/Z Durumu ($)", value=0.0)
                 if st.form_submit_button("SONUCU KAYDET"):
-                    requests.post(U_URL, json={"id": tid, "status": tstat, "exit_//price": texit})
-                    # // siliyorum
-                    requests.post(U_URL, json={"id": tid, "status": tstat, "exit_price": texit})
+                    # pnl değerini gönderiyoruz
+                    requests.post(U_URL, json={"id": tid, "status": tstat, "exit_price": tpnl})
                     st.rerun()
 
         st.markdown("---")
         c_left, c_right = st.columns([2, 1])
         with c_left:
             st.subheader("📜 Sinyal Geçmişi")
-            # BAŞLIKLARI BÜYÜK HARF YAPMA
+            # BAŞLIKLAR BÜYÜK HARF
             cols_to_show = {'id': 'ID', 'time': 'ZAMAN', 'pattern': 'FORMASYON', 'signal': 'YÖN', 'entry': 'GİRİŞ', 'sl': 'STOP', 'tp2': 'TP2', 'status': 'DURUM'}
             display_df = df[list(cols_to_show.keys())].copy()
             display_df.columns = list(cols_to_show.values())
@@ -149,18 +142,16 @@ with tab2:
 
     df_all = fetch_data()
     daily_pnl = 0
-    if not df_all.empty:
-        today = datetime.now().strftime("%Y-%m-%d")
-        today_trades = df_all[df_all['time'].str.contains(today)]
-        for _, row in today_trades.iterrows():
-            if row['status'] == 'WIN': daily_pnl += (row['tp1'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['tp1'])
-            if row['status'] == 'LOSS': daily_pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
+        if not df_all.empty:
+            today = datetime.now().strftime("%Y-%m-%d")
+            today_trades = df_all[df_all['time'].str.contains(today)]
+            for _, row in today_trades.iterrows():
+                # Artık doğrudan pnl sütununu topluyoruz
+                daily_pnl += float(row['pnl']) if pd.notnull(row['pnl']) else 0
 
-    # RENKLİ GÜNLÜK UYARI
     if daily_pnl <= -3000:
         st.markdown(f'<div style="background-color:#ff4b4b; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})</div>', unsafe_allow_html=True)
     elif daily_pnl >= 1000:
-
         st.markdown(f'<div style="background-color:#00c853; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="background-color:#161b22; color:white; padding:20px; border-radius:10px; text-align:center;">Günlük Durum: ${daily_pnl:.2f}</div>', unsafe_allow_html=True)
@@ -176,14 +167,13 @@ with tab2:
     with col_setup:
         st.subheader("⚙️ Kasa Yönetimi")
         st.write("Sistem, yaptığınız işlemlerin sonucuna göre kasanızı otomatik günceller.")
-        st.info("Yeni bir işlem sonucu girdiğinizde Güncel Kasa anında değişecektir.")
+        st.info("Sinyaller sekmesinden sonuç girdiğinizde kasa otomatik güncellenir.")
 
     with col_chart:
         st.subheader("📈 K/Z Grafiği (Günlük)")
         if not df.empty:
-            df['cum_pnl'] = df['PnL'].cumsum() if 'PnL' in df.columns else 0
+            df['cum_pnl'] = df['pnl'].cumsum() if 'pnl' in df.columns else 0
             fig_line = px.line(df, x='time', y='cum_pnl', template="plotly_dark")
-            # SAAT/DAKİKA KALDIRMA, SADECE GÜN
             fig_line.update_xaxes(dtick="D1", tickformat="%Y-%m-%d")
             fig_line.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_line, use_container_width=True)
