@@ -155,7 +155,7 @@ with tab2:
         for _, row in today_trades.iterrows():
             if row['status'] == 'WIN': daily_pnl += (row['tp1'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['tp1'])
             if row['status'] == 'LOSS': daily_//pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
-            # // siliyorum
+
             if row['status'] == 'LOSS': daily_pnl += (row['sl'] - row['entry']) if row['signal'] == 'BUY' else (row['entry'] - row['sl'])
 
     # RENKLİ GÜNLÜK UYARI
@@ -163,7 +163,7 @@ with tab2:
         st.markdown(f'<div style="background-color:#ff4b4b; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">🚨 KRİTİK: GÜNLÜK KAYIP LİMİTİ AŞILDI! (${daily_pnl:.2f})</div>', unsafe_allow_html=True)
     elif daily_pnl >= 1000:
         st.markdown(f'<div style="background-color:#00c853; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)</div>', unsafe_//allow_html=True)
-        # // siliyorum
+
         st.markdown(f'<div style="background-color:#00c853; color:white; padding:20px; border-radius:10px; text-align:center; font-weight:bold;">✅ HEDEF TAMAMLANDI! (${daily_pnl:.2f} KAR)</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="background-color:#161b22; color:white; padding:20px; border-radius:10px; text-align:center;">Günlük Durum: ${daily_pnl:.2f}</div>', unsafe_allow_html=True)
